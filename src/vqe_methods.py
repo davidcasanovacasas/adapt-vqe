@@ -10,7 +10,8 @@ import sys
 
 import pyscf
 from pyscf import lib
-from pyscf import gto, scf, mcscf, fci, ao2mo, lo, molden, cc
+#from pyscf import gto, scf, mcscf, fci, ao2mo, lo, molden, cc
+from pyscf import gto, scf, mcscf, fci, ao2mo, lo, tools, cc
 from pyscf.cc import ccsd
 
 import operator_pools
@@ -31,7 +32,8 @@ def adapt_vqe(hamiltonian_op, pool, reference_ket,
         ):
 # {{{
 
-    hamiltonian = openfermion.transforms.get_sparse_operator(hamiltonian_op)
+    #hamiltonian = openfermion.transforms.get_sparse_operator(hamiltonian_op)
+    hamiltonian = openfermion.linalg.get_sparse_operator(hamiltonian_op)
     ref_energy = reference_ket.T.conj().dot(hamiltonian.dot(reference_ket))[0,0].real
     print(" Reference Energy: %12.8f" %ref_energy)
 

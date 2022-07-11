@@ -1,6 +1,7 @@
 import numpy as np
 import scipy 
-from pyscf import gto, scf, mcscf, fci, ao2mo, lo, molden, cc
+#from pyscf import gto, scf, mcscf, fci, ao2mo, lo, molden, cc
+from pyscf import gto, scf, mcscf, fci, ao2mo, lo, tools, cc
 from pyscf.cc import ccsd
 import copy as cp
 
@@ -8,6 +9,7 @@ from sys import getsizeof
 import h5py
 import pyscf
 from pyscf import lib
+from pyscf.lib import logger
 
 from functools import reduce
 
@@ -210,7 +212,7 @@ class SQ_Hamiltonian:
 
 
 
-def init(molecule,charge,spin,basis,n_frzn_occ=0, n_act=None, mo_order=None):
+def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo_order=None):
 # {{{
     #PYSCF inputs
     print(" ---------------------------------------------------------")
@@ -230,6 +232,7 @@ def init(molecule,charge,spin,basis,n_frzn_occ=0, n_act=None, mo_order=None):
     mol.charge = charge
     mol.spin = spin
     mol.basis = basis
+    mol.symmetry = False
     mol.build()
 
     #orbitals and electrons
@@ -239,21 +242,105 @@ def init(molecule,charge,spin,basis,n_frzn_occ=0, n_act=None, mo_order=None):
 
     if n_act == None:
         n_act = n_orb
-    #SCF 
-    mf = scf.RHF(mol).run()
-    #mf = scf.ROHF(mol).run()
-    
+
+    #SCF: UHF
+    print("SCF: UHF -------------")
+    mf_uhf = scf.UHF(mol).run()
+    new_mo = mf_uhf.stability()[0]
+    j = 0
+    Max_attempts = 3
+    #log = lib.logger.new_logger(mf)
+    mo_diff = np.linalg.norm(mf_uhf.mo_coeff[0] - new_mo[0]) + np.linalg.norm(mf_uhf.mo_coeff[1] - new_mo[1])
+    while (mo_diff > 1e-5) and (j < Max_attempts):
+        print("Rotating orbitals to find stable solution: attempt %d."%(j+1))
+        new_dm = mf_uhf.make_rdm1(new_mo,mf_uhf.mo_occ)
+        mf_uhf.run(new_dm)
+        new_mo = mf_uhf.stability()[0]
+        mo_diff = np.linalg.norm(mf_uhf.mo_coeff[0] - new_mo[0]) + np.linalg.norm(mf_uhf.mo_coeff[1] - new_mo[1])
+        j += 1
+    if mo_diff > 1e-5:
+        print("Unable to find a stable SCF solution after %d attempts."%(j+1))
+    else:
+        print("SCF solution is internally stable.")
+
+    # make rdm1
+    dm_uhf = mf_uhf.make_rdm1(mf_uhf.mo_coeff,mf_uhf.mo_occ)
+    '''print("Density matrix")
+    print(dm_uhf)'''
+
+    # build total UHF dm = dm_alpha + dm_beta
+    dm_tot = dm_uhf[0] + dm_uhf[1]
+    # Diagonalize UHF total density matrix
+    S = mf_uhf.get_ovlp(mol)
+    natocc, natorb =scipy.linalg.eigh(a=dm_tot,b=S,type=2)
+    # order natural orbitals by increasing occupancies
+    idx = natocc.argsort()[::-1]
+    natocc = natocc[idx]
+    natorb = natorb[:, idx]
+
+    '''print("UHF MO occ")
+    print(mf_uhf.mo_occ)
+    print("UHF MOs")
+    print(mf_uhf.mo_coeff)
+    print('UHF natural occupancies')
+    print(natocc)
+    print('Total elec:', np.sum(natocc))
+    print('UHF natural orbitals')
+    print(natorb)
+    print("Total UHF density")
+    print(dm_tot)'''
+
+    # RHF calculations
+    print("SCF: RHF -------------")
+    mf_rhf = scf.RHF(mol)
+    mf_rhf.run()
+    '''dm_rhf = mf_rhf.make_rdm1(mf_rhf.mo_coeff,mf_rhf.mo_occ)
+    print("RHF density")
+    print(dm_rhf)
+    print("RHF MO occ")
+    print(mf_rhf.mo_occ)
+    print("RHF MOs energies")
+    print(mf_rhf.mo_energy)
+    print("RHF MOs")
+    print(mf_rhf.mo_coeff)'''
+
+    print("Testing SP RHF from UHF-NOs")
+    mf_test = scf.RHF(mol)
+    mf_test.mo_coeff = natorb
+    mf_test.max_cycle=0
+    conv, e, mo_e, mo, mo_occ = scf.rhf.kernel(mf_test,dm0=dm_tot)
+    print('conv = %s, E(HF) = %.12f' % (conv, e))
+    '''print("MOs energies")
+    print(mo_e)
+    print("MOs")
+    print(mo)'''
+
     if mo_order != None:
         print(len(mo_order) , mf.mo_coeff.shape[1])
         assert(len(mo_order) == mf.mo_coeff.shape[1])
         mf.mo_coeff = mf.mo_coeff[:,mo_order]
-    
-    C = mf.mo_coeff #MO coeffs
-    S = mf.get_ovlp()
+
+    if reference == 'rhf':
+        print("Using RHF orbitals")
+        E_tot = mf_rhf.e_tot
+        C = mf_rhf.mo_coeff
+    elif reference == 'uhf':
+        print("Using symmetrized UHF orbitals")
+        E_tot = mf_uhf.e_tot
+        C = mo
+    elif reference == 'uno':
+        print("Using UHF natural orbitals")
+        E_tot = mf_uhf.e_tot
+        C = natorb
+    else:
+        exit("Invalid reference. Chose rhf or uno")
 
     
     # dump orbitals for viewing 
-    molden.from_mo(mol, 'orbitals_canon.molden', C)
+    #molden.from_mo(mol, 'orbitals_canon.molden', C)
+    dump_orbs = False
+    if dump_orbs:
+        tools.molden.from_mo(mol, 'orbitals_canon.molden', C)
 
     ##READING INTEGRALS FROM PYSCF
     E_nuc = gto.Mole.energy_nuc(mol)
@@ -270,8 +357,8 @@ def init(molecule,charge,spin,basis,n_frzn_occ=0, n_act=None, mo_order=None):
     print("Number of Orbitals                             :%10i" %(n_orb))
     print("Number of electrons                            :%10i" %(nel))
     print("Nuclear Repulsion                              :%16.10f " %E_nuc)
-    print("Electronic SCF energy                          :%16.10f " %(mf.e_tot-E_nuc))
-    print("SCF Energy                                     :%16.10f"%(mf.e_tot))
+    print("Electronic SCF energy                          :%16.10f " %(E_tot-E_nuc))
+    print("SCF Energy                                     :%16.10f"%(E_tot))
 
 
     print(" AO->MO")
@@ -357,7 +444,7 @@ def init(molecule,charge,spin,basis,n_frzn_occ=0, n_act=None, mo_order=None):
         print()
     
     Cact = C[:,n_frzn_occ:n_frzn_occ+n_act]
-    return(n_act, n_a, n_b, h, eri_act, mol, E_nuc ,mf.e_tot,Cact,S)
+    return(n_act, n_a, n_b, h, eri_act, mol, E_nuc ,mf_uhf.e_tot,Cact,S)
 # }}}
 
 
