@@ -281,28 +281,28 @@ def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo
     '''print("UHF MO occ")
     print(mf_uhf.mo_occ)
     print("UHF MOs")
-    print(mf_uhf.mo_coeff)
+    print(mf_uhf.mo_coeff)'''
     print('UHF natural occupancies')
     print(natocc)
     print('Total elec:', np.sum(natocc))
     print('UHF natural orbitals')
     print(natorb)
     print("Total UHF density")
-    print(dm_tot)'''
+    print(dm_tot)
 
     # RHF calculations
     print("SCF: RHF -------------")
     mf_rhf = scf.RHF(mol)
     mf_rhf.run()
-    '''dm_rhf = mf_rhf.make_rdm1(mf_rhf.mo_coeff,mf_rhf.mo_occ)
-    print("RHF density")
-    print(dm_rhf)
+    dm_rhf = mf_rhf.make_rdm1(mf_rhf.mo_coeff,mf_rhf.mo_occ)
+    '''print("RHF density")
+    print(dm_rhf)'''
     print("RHF MO occ")
     print(mf_rhf.mo_occ)
     print("RHF MOs energies")
     print(mf_rhf.mo_energy)
     print("RHF MOs")
-    print(mf_rhf.mo_coeff)'''
+    print(mf_rhf.mo_coeff)
 
     print("Testing SP RHF from UHF-NOs")
     mf_test = scf.RHF(mol)

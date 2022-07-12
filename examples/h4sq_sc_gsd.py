@@ -22,13 +22,13 @@ print("Running ADAPT-VQE"
 sys.stdout = open(file_path, "w")
 
 def test():
-    r = 3.0
-    geometry = [('H', (0,0,0)), ('H', (0,0,r)), ('H', (0,0,2*r)), ('H', (0,0,3*r))]
+    r = 2.0
+    geometry = [('H', (0,0,0)), ('H', (0,0,r)), ('H', (0,r,0)), ('H', (0,r,r))]
 
 
     charge = 0
     spin = 0
-    basis = '3-21g'
+    basis = 'sto-3g'
 
     [n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S] = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
 
