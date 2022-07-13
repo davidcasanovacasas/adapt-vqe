@@ -315,10 +315,12 @@ def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo
     print("MOs")
     print(mo)'''
 
+    '''
     if mo_order != None:
         print(len(mo_order) , mf.mo_coeff.shape[1])
         assert(len(mo_order) == mf.mo_coeff.shape[1])
         mf.mo_coeff = mf.mo_coeff[:,mo_order]
+    '''
 
     if reference == 'rhf':
         print("Using RHF orbitals")
