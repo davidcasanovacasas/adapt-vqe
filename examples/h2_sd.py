@@ -30,7 +30,7 @@ def test():
     spin = 0
     basis = 'sto-3g'
 
-    [n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S] = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
+    n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
 
     print(" n_orb: %4i" %n_orb)
     print(" n_a  : %4i" %n_a)
