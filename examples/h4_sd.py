@@ -16,20 +16,20 @@ from tVQE import *
 import sys
 
 # define output file
-file_path = 'h2_sd.out'
+file_path = 'h4_sd.basis2.out'
 print("Running ADAPT-VQE"
       "results will be saved in " + file_path)
 #sys.stdout = open(file_path, "w")
 
 def test():
-    r = 3.5
-    geometry = [('H', (0,0,0)), ('H', (0,0,r))]
+    r = 3.0
+    geometry = [('H', (0,0,0)), ('H', (0,0,r)), ('H', (0,0,2*r)), ('H', (0,0,3*r))]
     charge = 0
     spin = 0
     #basis  = '3-21g'
     basis2 = None
-    basis = '3-21g'
-    initial_ind = [1]
+    basis = 'sto-3g'
+    initial_ind = [9,11,6,8,4,13,0,3,9]
 
     n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
 

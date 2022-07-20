@@ -288,6 +288,7 @@ class singlet_GSD(OperatorPool):
         print(" Form singlet GSD operators")
 
         self.fermi_ops = []
+        self.op_index = []
         for p in range(0,self.n_orb):
             pa = 2*p
             pb = 2*p+1
@@ -312,6 +313,7 @@ class singlet_GSD(OperatorPool):
                 if termA.many_body_order() > 0:
                     termA = termA/np.sqrt(coeffA)
                     self.fermi_ops.append(termA)
+                    self.op_index.append((q,p))
 
 
         pq = -1
@@ -390,13 +392,16 @@ class singlet_GSD(OperatorPool):
                         if termA.many_body_order() > 0:
                             termA = termA/np.sqrt(coeffA)
                             self.fermi_ops.append(termA)
+                            self.op_index.append((q,p,s,r))
 
                         if termB.many_body_order() > 0:
                             termB = termB/np.sqrt(coeffB)
                             self.fermi_ops.append(termB)
+                            self.op_index.append((q,p,s,r))
 
         self.n_ops = len(self.fermi_ops)
         print(" Number of operators: ", self.n_ops)
+        print(" Number of indices: ", len(self.op_index))
         return
 # }}}
 
@@ -412,6 +417,7 @@ class singlet_SD(OperatorPool):
 
         print(" Form singlet SD operators")
         self.fermi_ops = []
+        self.op_index = []
 
         assert(self.n_occ_a == self.n_occ_b)
         n_occ = self.n_occ
@@ -441,6 +447,7 @@ class singlet_SD(OperatorPool):
                 if termA.many_body_order() > 0:
                     termA = termA/np.sqrt(coeffA)
                     self.fermi_ops.append(termA)
+                    self.op_index.append((i,a+n_occ))
 
 
         for i in range(0,n_occ):
@@ -491,13 +498,16 @@ class singlet_SD(OperatorPool):
                         if termA.many_body_order() > 0:
                             termA = termA/np.sqrt(coeffA)
                             self.fermi_ops.append(termA)
+                            self.op_index.append((j,i,b+n_occ,a+n_occ))
 
                         if termB.many_body_order() > 0:
                             termB = termB/np.sqrt(coeffB)
                             self.fermi_ops.append(termB)
+                            self.op_index.append((j,i,b+n_occ,a+n_occ))
 
         self.n_ops = len(self.fermi_ops)
         print(" Number of operators: ", self.n_ops)
+        print(" Number of indices: ", len(self.op_index))
         return
     # }}}
 

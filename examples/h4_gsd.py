@@ -16,21 +16,22 @@ from tVQE import *
 import sys
 
 # define output file
-file_path = 'output.out'
+file_path = 'h4_sd.basis2.out'
 print("Running ADAPT-VQE"
       "results will be saved in " + file_path)
-sys.stdout = open(file_path, "w")
+#sys.stdout = open(file_path, "w")
 
 def test():
     r = 3.0
     geometry = [('H', (0,0,0)), ('H', (0,0,r)), ('H', (0,0,2*r)), ('H', (0,0,3*r))]
-
-
     charge = 0
     spin = 0
-    basis = '3-21g'
+    #basis  = '3-21g'
+    basis2 = None
+    basis = 'sto-3g'
+    initial_ind = [9,11,6,8,4,13,0,3,9]
 
-    [n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S] = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
+    n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
 
     print(" n_orb: %4i" %n_orb)
     print(" n_a  : %4i" %n_a)
@@ -72,11 +73,38 @@ def test():
     pyscf.tools.molden.from_mo(mol, "full.molden", sq_ham.C)
     #   pyscf.molden.from_mo(mol, "full.molden", sq_ham.C)
 
-    #   Francesco, change this to singlet_GSD() if you want generalized singles and doubles
+    #  Get operator pool (you can change it to: singlet_GSD() ...)
     pool = operator_pools.singlet_GSD()
     pool.init(n_orb, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb-n_a, n_vir_b=n_orb-n_b)
 
-    [e,v,params] = vqe_methods.adapt_vqe(fermi_ham, pool, reference_ket, adapt_thresh=1e-5, theta_thresh=1e-9)
+    print("List of operators")
+    for oi in range(pool.n_ops):
+        orbitals = pool.op_index[oi]
+        print(oi,pool.op_index.index(orbitals), orbitals)
+
+    print("List of terms")
+    for oi in range(pool.n_ops):
+        opstring = pool.get_string_for_term(pool.fermi_ops[oi])
+        print(oi,opstring)
+
+    if basis2:
+        print("Performing ADAPT-VQE with basis2")
+        # set n_orb2
+        mol2 = mol
+        mol2.basis = basis2
+        mol2.build()
+        n_orb2 = mol2.nao_nr()
+        print(" # orbitals in basis2: %s = %4i" %(basis2, n_orb2))
+        # Get basis2 operator pool
+        pool_basis2 = operator_pools.singlet_SD()
+        pool_basis2.init(n_orb2, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb2-n_a, n_vir_b=n_orb2-n_b)
+        # Do the calculation
+        [e,v,params] = vqe_methods.adapt_vqe_basis2(fermi_ham, pool, pool_basis2, reference_ket,
+                                                theta_thresh=1e-9,
+                                                trial_indices = initial_ind)
+    else:
+        print("Performing ADAPT-VQE")
+        [e,v,params] = vqe_methods.adapt_vqe(fermi_ham, pool, reference_ket, theta_thresh=1e-9)
 
     print(" Final ADAPT-VQE energy: %12.8f" %e)
     print(" <S^2> of final state  : %12.8f" %(v.conj().T.dot(s2.dot(v))[0,0].real))

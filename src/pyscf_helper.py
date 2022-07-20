@@ -212,7 +212,7 @@ class SQ_Hamiltonian:
 
 
 
-def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo_order=None):
+def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo_order=None, unit='AU'):
 # {{{
     #PYSCF inputs
     print(" ---------------------------------------------------------")
@@ -233,6 +233,7 @@ def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo
     mol.spin = spin
     mol.basis = basis
     mol.symmetry = False
+    mol.unit = unit
     mol.build()
 
     #orbitals and electrons
@@ -323,15 +324,15 @@ def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo
     '''
 
     if reference == 'rhf':
-        print("Using RHF orbitals")
+        print("\n Using RHF orbitals")
         E_tot = mf_rhf.e_tot
         C = mf_rhf.mo_coeff
     elif reference == 'uhf':
-        print("Using symmetrized UHF orbitals")
+        print("\n Using symmetrized UHF orbitals")
         E_tot = mf_uhf.e_tot
         C = mo
     elif reference == 'uno':
-        print("Using UHF natural orbitals")
+        print("\n Using UHF natural orbitals")
         E_tot = mf_uhf.e_tot
         C = natorb
     else:

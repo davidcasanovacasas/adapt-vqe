@@ -16,22 +16,24 @@ from tVQE import *
 import sys
 
 # define output file
-file_path = 'h2_sd.out'
+file_path = 'h4pyr_sc_gsd.out'
 print("Running ADAPT-VQE"
       "results will be saved in " + file_path)
-#sys.stdout = open(file_path, "w")
+sys.stdout = open(file_path, "w")
 
 def test():
-    r = 3.5
-    geometry = [('H', (0,0,0)), ('H', (0,0,r))]
+    # r = 3.0
+    geometry = [('H', (0.8660254038,  0.6000000000, -0.0000000000)),
+                ('H', (-0.4330127019,  0.6000000000, -0.7500000000)),
+                ('H', (-0.4330127019,  0.6000000000,  0.7500000000)),
+                ('H', (0.0000000000, -1.8000000000,  0.0000000000))]
+
+    unit = 'Bohr' # coordinates in bohrs
     charge = 0
     spin = 0
-    #basis  = '3-21g'
-    basis2 = None
-    basis = '3-21g'
-    initial_ind = [1]
+    basis = 'sto-3g'
 
-    n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
+    [n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S] = pyscf_helper.init(geometry,charge,spin,basis,reference='uno',unit=unit)
 
     print(" n_orb: %4i" %n_orb)
     print(" n_a  : %4i" %n_a)
@@ -73,38 +75,11 @@ def test():
     pyscf.tools.molden.from_mo(mol, "full.molden", sq_ham.C)
     #   pyscf.molden.from_mo(mol, "full.molden", sq_ham.C)
 
-    #  Get operator pool (you can change it to: singlet_GSD() ...)
-    pool = operator_pools.singlet_SD()
+    #   Francesco, change this to singlet_GSD() if you want generalized singles and doubles
+    pool = operator_pools.spin_complement_GSD()
     pool.init(n_orb, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb-n_a, n_vir_b=n_orb-n_b)
 
-    print("List of operators")
-    for oi in range(pool.n_ops):
-        orbitals = pool.op_index[oi]
-        print(pool.op_index.index(orbitals), orbitals)
-
-    print("List of terms")
-    for oi in range(pool.n_ops):
-        opstring = pool.get_string_for_term(pool.fermi_ops[oi])
-        print(oi,opstring)
-
-    if basis2:
-        print("Performing ADAPT-VQE with basis2")
-        # set n_orb2
-        mol2 = mol
-        mol2.basis = basis2
-        mol2.build()
-        n_orb2 = mol2.nao_nr()
-        print(" # orbitals in basis2: %s = %4i" %(basis2, n_orb2))
-        # Get basis2 operator pool
-        pool_basis2 = operator_pools.singlet_SD()
-        pool_basis2.init(n_orb2, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb2-n_a, n_vir_b=n_orb2-n_b)
-        # Do the calculation
-        [e,v,params] = vqe_methods.adapt_vqe_basis2(fermi_ham, pool, pool_basis2, reference_ket,
-                                                theta_thresh=1e-9,
-                                                trial_indices = initial_ind)
-    else:
-        print("Performing ADAPT-VQE")
-        [e,v,params] = vqe_methods.adapt_vqe(fermi_ham, pool, reference_ket, theta_thresh=1e-9)
+    [e,v,params] = vqe_methods.adapt_vqe(fermi_ham, pool, reference_ket, adapt_thresh=1e-7, theta_thresh=1e-9)
 
     print(" Final ADAPT-VQE energy: %12.8f" %e)
     print(" <S^2> of final state  : %12.8f" %(v.conj().T.dot(s2.dot(v))[0,0].real))
