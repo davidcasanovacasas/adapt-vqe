@@ -80,7 +80,7 @@ def test():
     print("List of operators")
     for oi in range(pool.n_ops):
         orbitals = pool.op_index[oi]
-        print(pool.op_index.index(orbitals), orbitals)
+        print(oi,pool.op_index.index(orbitals), orbitals)
 
     print("List of terms")
     for oi in range(pool.n_ops):

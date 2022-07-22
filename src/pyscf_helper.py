@@ -212,7 +212,7 @@ class SQ_Hamiltonian:
 
 
 
-def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo_order=None, unit='AU'):
+def init(molecule,charge,spin,basis,reference='rhf',n_frzn_occ=0, n_act=None, mo_order=None, unit='Angstrom'):
 # {{{
     #PYSCF inputs
     print(" ---------------------------------------------------------")

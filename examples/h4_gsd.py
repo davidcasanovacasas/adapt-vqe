@@ -16,22 +16,23 @@ from tVQE import *
 import sys
 
 # define output file
-file_path = 'h4_sd.basis2.out'
+file_path = 'h4_gsd.20.sto3g.out'
 print("Running ADAPT-VQE"
       "results will be saved in " + file_path)
-#sys.stdout = open(file_path, "w")
+sys.stdout = open(file_path, "w")
 
 def test():
-    r = 3.0
+    r = 2.0
     geometry = [('H', (0,0,0)), ('H', (0,0,r)), ('H', (0,0,2*r)), ('H', (0,0,3*r))]
     charge = 0
     spin = 0
     #basis  = '3-21g'
     basis2 = None
     basis = 'sto-3g'
+    unit = 'Angstrom'
     initial_ind = [9,11,6,8,4,13,0,3,9]
 
-    n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
+    n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf',unit=unit)
 
     print(" n_orb: %4i" %n_orb)
     print(" n_a  : %4i" %n_a)
@@ -96,7 +97,7 @@ def test():
         n_orb2 = mol2.nao_nr()
         print(" # orbitals in basis2: %s = %4i" %(basis2, n_orb2))
         # Get basis2 operator pool
-        pool_basis2 = operator_pools.singlet_SD()
+        pool_basis2 = operator_pools.singlet_GSD()
         pool_basis2.init(n_orb2, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb2-n_a, n_vir_b=n_orb2-n_b)
         # Do the calculation
         [e,v,params] = vqe_methods.adapt_vqe_basis2(fermi_ham, pool, pool_basis2, reference_ket,

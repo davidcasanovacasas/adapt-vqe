@@ -392,12 +392,12 @@ class singlet_GSD(OperatorPool):
                         if termA.many_body_order() > 0:
                             termA = termA/np.sqrt(coeffA)
                             self.fermi_ops.append(termA)
-                            self.op_index.append((q,p,s,r))
+                            self.op_index.append((q,p,s,r,'a'))
 
                         if termB.many_body_order() > 0:
                             termB = termB/np.sqrt(coeffB)
                             self.fermi_ops.append(termB)
-                            self.op_index.append((q,p,s,r))
+                            self.op_index.append((q,p,s,r,'b'))
 
         self.n_ops = len(self.fermi_ops)
         print(" Number of operators: ", self.n_ops)
@@ -498,12 +498,12 @@ class singlet_SD(OperatorPool):
                         if termA.many_body_order() > 0:
                             termA = termA/np.sqrt(coeffA)
                             self.fermi_ops.append(termA)
-                            self.op_index.append((j,i,b+n_occ,a+n_occ))
+                            self.op_index.append((j,i,b+n_occ,a+n_occ,'a'))
 
                         if termB.many_body_order() > 0:
                             termB = termB/np.sqrt(coeffB)
                             self.fermi_ops.append(termB)
-                            self.op_index.append((j,i,b+n_occ,a+n_occ))
+                            self.op_index.append((j,i,b+n_occ,a+n_occ,'b'))
 
         self.n_ops = len(self.fermi_ops)
         print(" Number of operators: ", self.n_ops)
