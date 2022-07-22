@@ -85,15 +85,16 @@ def run_adapt_vqe(unit,geometry,charge,spin,basis,
 
     pool.init(n_orb, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb-n_a, n_vir_b=n_orb-n_b)
 
-    print("List of operators")
+    '''print("List of operators")
     for oi in range(pool.n_ops):
         orbitals = pool.op_index[oi]
         print(pool.op_index.index(orbitals), orbitals)
-
+    
     print("List of terms")
     for oi in range(pool.n_ops):
         opstring = pool.get_string_for_term(pool.fermi_ops[oi])
         print(oi,opstring)
+    '''
 
     if basis2 or n_act2:
         print("Performing ADAPT-VQE with basis2 and/or active-space2")

@@ -1,20 +1,5 @@
-import scipy
-import vqe_methods
-import operator_pools
-import pyscf_helper
-from run_adapt import run_adapt_vqe
-
-import pyscf
-from pyscf import lib
-#from pyscf import gto, scf, mcscf, fci, ao2mo, lo, molden, cc
-from pyscf import gto, scf, mcscf, fci, ao2mo, lo, tools, cc
-from pyscf.cc import ccsd
-
-import openfermion
-from openfermion import *
-from tVQE import *
-
 import sys
+from run_adapt import run_adapt_vqe
 
 # define output file
 file_path = 'test.out'
@@ -34,7 +19,7 @@ n_act = 4
 
 # Secondary pool
 basis2 = None
-n_act2 = None
+n_act2 = 2
 initial_ind = [1]
 
 # pool type: SD, GSD, sc_GSD
