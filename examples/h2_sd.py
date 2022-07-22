@@ -22,16 +22,19 @@ print("Running ADAPT-VQE"
 #sys.stdout = open(file_path, "w")
 
 def test():
-    r = 3.5
+    r = 3.0
     geometry = [('H', (0,0,0)), ('H', (0,0,r))]
     charge = 0
     spin = 0
-    #basis  = '3-21g'
+    basis  = '3-21g'
     basis2 = None
-    basis = '3-21g'
+    #basis = 'sto-3g'
     initial_ind = [1]
+    n_act = 4
+    n_act2 = 2
 
-    n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,reference='rhf')
+    n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,
+                                                                       reference='rhf',n_act=n_act)
 
     print(" n_orb: %4i" %n_orb)
     print(" n_a  : %4i" %n_a)
@@ -87,14 +90,20 @@ def test():
         opstring = pool.get_string_for_term(pool.fermi_ops[oi])
         print(oi,opstring)
 
-    if basis2:
-        print("Performing ADAPT-VQE with basis2")
-        # set n_orb2
+    if basis2 or n_act2:
+        print("Performing ADAPT-VQE with basis2 and/or active-space2")
+        # set n_orb2 and basis2
         mol2 = mol
-        mol2.basis = basis2
+        if basis2:
+            mol2.basis = basis2
+        else:
+            basis2 = basis
         mol2.build()
-        n_orb2 = mol2.nao_nr()
-        print(" # orbitals in basis2: %s = %4i" %(basis2, n_orb2))
+        if n_act:
+            n_orb2 = n_act2
+        else:
+            n_orb2 = mol2.nao_nr()
+        print(" # active orbitals in basis2: %s = %4i" %(basis2, n_orb2))
         # Get basis2 operator pool
         pool_basis2 = operator_pools.singlet_SD()
         pool_basis2.init(n_orb2, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb2-n_a, n_vir_b=n_orb2-n_b)
