@@ -15,24 +15,12 @@ from tVQE import *
 
 import sys
 
-# define output file
-file_path = 'h2_sd.out'
-print("Running ADAPT-VQE"
-      "results will be saved in " + file_path)
-#sys.stdout = open(file_path, "w")
-
-def test():
-    unit = 'Angstrom'
-    r = 3.0
-    geometry = [('H', (0,0,0)), ('H', (0,0,r))]
-    charge = 0
-    spin = 0
-    basis  = '3-21g'
-    basis2 = None
-    #basis = 'sto-3g'
-    initial_ind = [1]
-    n_act = 4
-    n_act2 = 2
+def run_adapt_vqe(unit,geometry,charge,spin,basis,
+              pool_type='SD',
+              basis2=None,
+              n_act=None,
+              n_act2=None,
+              initial_ind=None):
 
     n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,
                                                                        reference='rhf',
@@ -80,7 +68,21 @@ def test():
     #   pyscf.molden.from_mo(mol, "full.molden", sq_ham.C)
 
     #  Get operator pool (you can change it to: singlet_GSD() ...)
-    pool = operator_pools.singlet_SD()
+    if pool_type == 'SD':
+        pool = operator_pools.singlet_SD()
+        if basis2 or n_act2:
+            pool_basis2 = operator_pools.singlet_SD()
+    elif pool_type == 'GSD':
+        pool = operator_pools.singlet_GSD()
+        if basis2 or n_act2:
+            pool_basis2 = operator_pools.singlet_GSD()
+    elif pool_type == 'sc_GSD':
+        pool = operator_pools.spin_complement_GSD()
+        if basis2 or n_act2:
+            pool_basis2 = operator_pools.spin_complement_GSD()
+    else:
+        exit("Incorrect pool_type. Choose: SD, GSD or sc_GSD")
+
     pool.init(n_orb, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb-n_a, n_vir_b=n_orb-n_b)
 
     print("List of operators")
@@ -108,7 +110,7 @@ def test():
             n_orb2 = mol2.nao_nr()
         print(" # active orbitals in basis2: %s = %4i" %(basis2, n_orb2))
         # Get basis2 operator pool
-        pool_basis2 = operator_pools.singlet_SD()
+        #pool_basis2 = operator_pools.singlet_SD()
         pool_basis2.init(n_orb2, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb2-n_a, n_vir_b=n_orb2-n_b)
         # Do the calculation
         [e,v,params] = vqe_methods.adapt_vqe_basis2(fermi_ham, pool, pool_basis2, reference_ket,
@@ -121,6 +123,3 @@ def test():
     print(" Final ADAPT-VQE energy: %12.8f" %e)
     print(" <S^2> of final state  : %12.8f" %(v.conj().T.dot(s2.dot(v))[0,0].real))
 
-
-if __name__== "__main__":
-    test()
