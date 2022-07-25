@@ -16,11 +16,15 @@ from tVQE import *
 import sys
 
 def run_adapt_vqe(unit,geometry,charge,spin,basis,
-              pool_type='SD',
-              basis2=None,
-              n_act=None,
-              n_act2=None,
-              initial_ind=None):
+              pool_type = 'SD',
+              basis2 = None,
+              n_act = None,
+              n_act2 = None,
+              initial_ind = None,
+              adapt_conver = None,
+              adapt_thresh = None,
+              theta_thresh = None,
+              adapt_maxiter = None):
 
     n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,
                                                                        reference='rhf',
@@ -115,11 +119,19 @@ def run_adapt_vqe(unit,geometry,charge,spin,basis,
         pool_basis2.init(n_orb2, n_occ_a=n_a, n_occ_b=n_b, n_vir_a=n_orb2-n_a, n_vir_b=n_orb2-n_b)
         # Do the calculation
         [e,v,params] = vqe_methods.adapt_vqe_basis2(fermi_ham, pool, pool_basis2, reference_ket,
-                                                theta_thresh=1e-9,
-                                                trial_indices = initial_ind)
+                                                    adapt_conver  = adapt_conver,
+                                                    adapt_thresh  = adapt_thresh,
+                                                    theta_thresh  = theta_thresh,
+                                                    adapt_maxiter = adapt_maxiter,
+                                                    trial_indices = initial_ind)
+
     else:
         print("Performing ADAPT-VQE")
-        [e,v,params] = vqe_methods.adapt_vqe(fermi_ham, pool, reference_ket, theta_thresh=1e-9)
+        [e,v,params] = vqe_methods.adapt_vqe(fermi_ham, pool, reference_ket,
+                                             adapt_conver  = adapt_conver,
+                                             adapt_thresh  = adapt_thresh,
+                                             theta_thresh  = theta_thresh,
+                                             adapt_maxiter = adapt_maxiter)
 
     print(" Final ADAPT-VQE energy: %12.8f" %e)
     print(" <S^2> of final state  : %12.8f" %(v.conj().T.dot(s2.dot(v))[0,0].real))
