@@ -16,6 +16,7 @@ from tVQE import *
 import sys
 
 def run_adapt_vqe(unit,geometry,charge,spin,basis,
+              reference = 'rhf',
               pool_type = 'SD',
               basis2 = None,
               n_act = None,
@@ -27,7 +28,7 @@ def run_adapt_vqe(unit,geometry,charge,spin,basis,
               adapt_maxiter = None):
 
     n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry,charge,spin,basis,
-                                                                       reference='rhf',
+                                                                       reference=reference,
                                                                        n_act=n_act,
                                                                        unit=unit)
 
