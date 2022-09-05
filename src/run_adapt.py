@@ -17,7 +17,7 @@ import sys
 
 def run_adapt_vqe(unit,geometry,charge,spin,basis,
               reference = 'rhf',
-              pool_type = 'SD',
+              pool_type = 'SD',  # Options: SD, GSD, sc_GSD
               basis2 = None,
               n_act = None,
               n_act2 = None,

@@ -23,6 +23,7 @@ from openfermion import *
 
 import pyscf_helper
 
+
 def adapt_vqe_basis2(hamiltonian_op, pool, pool2, reference_ket,
               adapt_conver    = 'norm',
               adapt_thresh    = 1e-3,
