@@ -183,7 +183,6 @@ def adapt_vqe(hamiltonian_op, pool, reference_ket,
         ):
 # {{{
 
-    #hamiltonian = openfermion.linalg.get_sparse_operator(hamiltonian_op)
     hamiltonian = openfermion.linalg.get_sparse_operator(hamiltonian_op)
     ref_energy = reference_ket.T.conj().dot(hamiltonian.dot(reference_ket))[0,0].real
     print(" Reference Energy: %12.8f" %ref_energy)
