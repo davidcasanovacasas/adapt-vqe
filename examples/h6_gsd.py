@@ -4,14 +4,14 @@ import operator_pools
 import pyscf_helper 
 
 import pyscf
-from pyscf import lib
-from pyscf import gto, scf, mcscf, fci, ao2mo, lo, molden, cc
-from pyscf.cc import ccsd
+from pyscf.tools import molden
+
 
 import openfermion 
 from openfermion import *
 from tVQE import *
-    
+from scipy.sparse import csc_matrix, linalg
+
 
 def test():
     r = 1.5
@@ -22,7 +22,7 @@ def test():
     spin = 0
     basis = 'sto-3g'
 
-    [n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S] = pyscf_helper.init(geometry,charge,spin,basis)
+    n_orb, n_a, n_b, h, g, mol, E_nuc, E_scf, C, S = pyscf_helper.init(geometry, charge, spin, basis)
 
     print(" n_orb: %4i" %n_orb)
     print(" n_a  : %4i" %n_a)
@@ -30,11 +30,13 @@ def test():
 
     sq_ham = pyscf_helper.SQ_Hamiltonian()
     sq_ham.init(h, g, C, S)
+    print(list(range(n_a)))
     print(" HF Energy: %12.8f" %(E_nuc + sq_ham.energy_of_determinant(range(n_a),range(n_b))))
 
     fermi_ham  = sq_ham.export_FermionOperator()
 
-    hamiltonian = openfermion.transforms.get_sparse_operator(fermi_ham)
+    hamiltonian = openfermion.linalg.get_sparse_operator(fermi_ham)
+    print(hamiltonian)
 
     s2 = vqe_methods.Make_S2(n_orb)
 
@@ -46,15 +48,15 @@ def test():
         occupied_list.append(i*2+1)
 
     print(" Build reference state with %4i alpha and %4i beta electrons" %(n_a,n_b), occupied_list)
-    reference_ket = scipy.sparse.csc_matrix(openfermion.jw_configuration_state(occupied_list, 2*n_orb)).transpose()
+    reference_ket = csc_matrix(openfermion.jw_configuration_state(occupied_list, 2*n_orb)).transpose()
 
-    [e,v] = scipy.sparse.linalg.eigsh(hamiltonian.real,1,which='SA',v0=reference_ket.todense())
+    [e,v] = linalg.eigsh(hamiltonian.real,1,which='SA',v0=reference_ket.todense())
     for ei in range(len(e)):
         S2 = v[:,ei].conj().T.dot(s2.dot(v[:,ei]))
         print(" State %4i: %12.8f au  <S2>: %12.8f" %(ei,e[ei]+E_nuc,S2))
     
-    fermi_ham += FermionOperator((),E_nuc)
-    pyscf.molden.from_mo(mol, "full.molden", sq_ham.C)
+    fermi_ham += FermionOperator((), E_nuc)
+    pyscf.tools.molden.from_mo(mol, "full.molden", sq_ham.C)
 
     #   Francesco, change this to singlet_GSD() if you want generalized singles and doubles
     pool = operator_pools.singlet_GSD()

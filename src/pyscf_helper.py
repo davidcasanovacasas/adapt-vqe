@@ -1,6 +1,7 @@
 import numpy as np
 import scipy 
-from pyscf import gto, scf, mcscf, fci, ao2mo, lo, molden, cc
+from pyscf import gto, scf, mcscf, fci, ao2mo, lo, cc
+from pyscf.tools import molden
 from pyscf.cc import ccsd
 import copy as cp
 
