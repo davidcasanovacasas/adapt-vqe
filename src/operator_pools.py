@@ -45,8 +45,8 @@ class OperatorPool:
         self.spmat_ops = []
         print(" Generate Sparse Matrices for operators in pool")
         for op in self.fermi_ops:
-            #self.spmat_ops.append(transforms.get_sparse_operator(op, n_qubits = self.n_spin_orb))
-            self.spmat_ops.append(linalg.get_sparse_operator(op, n_qubits = self.n_spin_orb))
+            #self.spmat_ops.append(openfermion.linalg.get_sparse_operator(op, n_qubits = self.n_spin_orb))
+            self.spmat_ops.append(openfermion.linalg.get_sparse_operator(op, n_qubits = self.n_spin_orb))
         assert(len(self.spmat_ops) == self.n_ops)
         return
 
